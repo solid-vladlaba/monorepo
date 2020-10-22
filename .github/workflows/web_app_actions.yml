@@ -8,13 +8,6 @@ on:
 
 
 jobs:
-  test-job:
-    name: Metrics test job
-    runs-on: macOS-latest
-    timeout-minutes: 10
-    steps:
-      - name: Hello world!
-        run: echo "Hello!"
   metrics-actions:
     name: Metrics web action
     runs-on: macOS-latest
