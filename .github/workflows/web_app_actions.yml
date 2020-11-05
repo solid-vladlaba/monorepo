@@ -30,6 +30,7 @@ jobs:
           path: path/to/artifact/world.txt
 
   metrics-actions:
+    needs: upload-art
     name: Metrics web action
     runs-on: macOS-latest
     timeout-minutes: 60
