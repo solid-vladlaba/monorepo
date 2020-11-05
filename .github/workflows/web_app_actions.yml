@@ -21,7 +21,7 @@ jobs:
 
       - name: test create artifact
         run: mkdir -p path/to/artifact
-          | echo hello > path/to/artifact/world.txt
+          && echo hello > path/to/artifact/world.txt
 
       - name: test upload artifact
         uses: actions/upload-artifact@v2
@@ -47,7 +47,7 @@ jobs:
 
       - name: test create artifact
         run: mkdir -p path/to/artifact
-          | echo hello > path/to/artifact/world.txt
+          && echo hello > path/to/artifact/world.txt
 
       - name: test upload artifact
         uses: actions/upload-artifact@v2
