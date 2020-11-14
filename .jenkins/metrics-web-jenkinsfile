@@ -10,6 +10,7 @@ pipeline {
         WORKING_DIR = 'metrics/web'
         WEB_APP_USER_EMAIL = credentials('web-app-user-email')
         WEB_APP_USER_PASSWORD = credentials('web-app-user-password')
+        PATH+EXTRA=${WORKSPACE}/flutter/bin:${WORKSPACE}/dart-sdk/bin
     }
 
     stages {
@@ -48,14 +49,8 @@ pipeline {
         stage('Get dependencies') {
             steps {
                 echo "Fetching dependencies..."
-                withEnv(["PATH+EXTRA=/flutter/bin/:${WORKSPACE}/flutter/bin"]) {
-                    sh "pwd"
-                    echo "$PWD"
-                    echo "$PATH"
+                withEnv(["PATH+EXTRA=${WORKSPACE}/flutter/bin"]) {
                     dir("${WORKING_DIR}") {
-                    sh "pwd"
-                                        echo "$PWD"
-                                        echo "$PATH"
                         sh "flutter pub get"
                     }
                 }
