@@ -10,7 +10,8 @@ pipeline {
         WORKING_DIR = 'metrics/web'
         WEB_APP_USER_EMAIL = credentials('web-app-user-email')
         WEB_APP_USER_PASSWORD = credentials('web-app-user-password')
-        "PATH+EXTRA" = "${WORKSPACE}/flutter/bin:${WORKSPACE}/dart-sdk/bin"
+        FLUTTER_PATH = '${WORKSPACE}/flutter/bin'
+        DART_PATH = '${WORKSPACE}/flutter/bin'
     }
 
     stages {
@@ -49,7 +50,7 @@ pipeline {
         stage('Get dependencies') {
             steps {
                 echo "Fetching dependencies..."
-                withEnv(["PATH+EXTRA=${WORKSPACE}/flutter/bin"]) {
+                withEnv(["PATH+EXTRA=${FLUTTER_PATH}:${DART_PATH}"]) {
                     dir("${WORKING_DIR}") {
                         sh "flutter pub get"
                     }
@@ -60,8 +61,10 @@ pipeline {
         stage('Flutter analyze') {
             steps {
                 echo "Analyzing code..."
-                dir("${WORKING_DIR}") {
-                    sh "flutter analyze"
+                withEnv(["PATH+EXTRA=${FLUTTER_PATH}:${DART_PATH}"]) {
+                    dir("${WORKING_DIR}") {
+                        sh "flutter analyze"
+                    }
                 }
             }
         }
@@ -69,8 +72,10 @@ pipeline {
         stage('Flutter test') {
             steps {
                 echo "Running tests..."
-                dir("${WORKING_DIR}") {
-                    sh "flutter test --coverage --coverage-path build/coverage.info"
+                withEnv(["PATH+EXTRA=${FLUTTER_PATH}:${DART_PATH}"]) {
+                    dir("${WORKING_DIR}") {
+                        sh "flutter test --coverage --coverage-path build/coverage.info"
+                    }
                 }
             }
         }
@@ -78,8 +83,10 @@ pipeline {
         stage('Flutter driver test') {
             steps {
                 echo "Running driver tests..."
-                dir("${WORKING_DIR}") {
-                    sh "dart test_driver/main.dart --no-verbose --store-logs-to=build/logs --email=$WEB_APP_USER_EMAIL --password=$WEB_APP_USER_PASSWORD"
+                withEnv(["PATH+EXTRA=${FLUTTER_PATH}:${DART_PATH}"]) {
+                    dir("${WORKING_DIR}") {
+                        sh "dart test_driver/main.dart --no-verbose --store-logs-to=build/logs --email=$WEB_APP_USER_EMAIL --password=$WEB_APP_USER_PASSWORD"
+                    }
                 }
             }
         }
