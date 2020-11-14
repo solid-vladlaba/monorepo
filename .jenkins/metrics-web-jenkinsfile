@@ -27,9 +27,6 @@ pipeline {
                 sh "wget https://storage.googleapis.com/flutter_infra/releases/${FLUTTER_CHANNEL}/linux/flutter_linux_${FLUTTER_VERSION}-${FLUTTER_CHANNEL}.tar.xz > /dev/null > /dev/null 2> /dev/null"
                 sh "tar xf flutter_linux_${FLUTTER_VERSION}-${FLUTTER_CHANNEL}.tar.xz"
                 sh "./flutter/bin/flutter --version"
-                script {
-                    env.PATH = "${PWD}/flutter/bin:${PWD}/dart-sdk/bin:${PATH}"
-                }
             }
         }
 
@@ -51,8 +48,10 @@ pipeline {
         stage('Get dependencies') {
             steps {
                 echo "Fetching dependencies..."
-                dir("${WORKING_DIR}") {
-                    sh "flutter pub get"
+                withEnv(["PATH+EXTRA=/flutter/bin"]) {
+                    dir("${WORKING_DIR}") {
+                        sh "flutter pub get"
+                    }
                 }
             }
         }
