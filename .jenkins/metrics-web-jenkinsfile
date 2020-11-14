@@ -48,9 +48,14 @@ pipeline {
         stage('Get dependencies') {
             steps {
                 echo "Fetching dependencies..."
-                withEnv(["PATH+EXTRA=/flutter/bin/:${PWD}/flutter/bin"]) {
+                withEnv(["PATH+EXTRA=/flutter/bin/:${WORKSPACE}/flutter/bin"]) {
+                    sh "pwd"
+                    echo "$PWD"
                     echo "$PATH"
                     dir("${WORKING_DIR}") {
+                    sh "pwd"
+                                        echo "$PWD"
+                                        echo "$PATH"
                         sh "flutter pub get"
                     }
                 }
