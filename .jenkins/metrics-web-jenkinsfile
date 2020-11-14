@@ -10,9 +10,7 @@ pipeline {
         WORKING_DIR = 'metrics/web'
         WEB_APP_USER_EMAIL = credentials('web-app-user-email')
         WEB_APP_USER_PASSWORD = credentials('web-app-user-password')
-        FLUTTER_PATH = '/flutter/bin/'
-        DART_PATH = '/dart/bin/'
-        f1 = './flutter/bin/flutter'
+        PATH = '`pwd`/dart-sdk/bin:`pwd`/flutter/bin/:$PATH'
     }
 
     stages {
@@ -30,7 +28,7 @@ pipeline {
                 sh "wget https://storage.googleapis.com/flutter_infra/releases/${FLUTTER_CHANNEL}/linux/flutter_linux_${FLUTTER_VERSION}-${FLUTTER_CHANNEL}.tar.xz > /dev/null > /dev/null 2> /dev/null"
                 sh "tar xf flutter_linux_${FLUTTER_VERSION}-${FLUTTER_CHANNEL}.tar.xz"
                 sh ".${FLUTTER_PATH}/flutter --version"
-                sh "f1 --version || ${f1} --version"
+                sh "flutter --version"
             }
         }
 
@@ -116,7 +114,7 @@ pipeline {
         always {
             echo "Cleaning up..."
             sh "rm -rf flutter"
-            sh "rm "
+            sh "rm flutter_linux_${FLUTTER_VERSION}-${FLUTTER_CHANNEL}.tar.xz"
             sh "rm dartsdk-linux-x64-release.zip"
             sh "rm -rf dart-sdk"
         }
