@@ -85,9 +85,9 @@ pipeline {
         }
 
         stage('Download coverage tool') {
-            dir("${WORKING_DIR}") {
-                steps {
-                    echo "Downloading coverage converter tool..."
+            steps {
+                echo "Downloading coverage converter tool..."
+                dir("${WORKING_DIR}") {
                     sh "curl -o coverage -k https://github.com/platform-platform/monorepo/releases/download/coverage-converter-snapshot/coverage_converter_linux -L"
                     sh "chmod a+x coverage"
                 }
