@@ -25,6 +25,7 @@ pipeline {
             steps {
                 echo "Installing Flutter from channel ${FLUTTER_CHANNEL} with version ${FLUTTER_VERSION}..."
                 sh "wget https://storage.googleapis.com/flutter_infra/releases/${FLUTTER_CHANNEL}/linux/flutter_linux_${FLUTTER_VERSION}-${FLUTTER_CHANNEL}.tar.xz"
+                sh "tar xf flutter_linux_${FLUTTER_VERSION}-${FLUTTER_CHANNEL}.tar.xz"
                 sh "export PATH=`pwd`/flutter/bin:$PATH"
                 sh "flutter version"
             }
