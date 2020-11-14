@@ -10,7 +10,8 @@ pipeline {
         WORKING_DIR = 'metrics/web'
         WEB_APP_USER_EMAIL = credentials('web-app-user-email')
         WEB_APP_USER_PASSWORD = credentials('web-app-user-password')
-        PATH = '$WORKSPACE/dart-sdk/bin:$WORKSPACE/flutter/bin/:$PATH'
+        FLUTTER = ".${WORKSPACE}/flutter/bin/flutter"
+        DART = ".${WORKSPACE}/dart-sdk/bin"
     }
 
     stages {
@@ -27,15 +28,14 @@ pipeline {
                 echo "Installing Flutter from channel ${FLUTTER_CHANNEL} with version ${FLUTTER_VERSION}..."
                 sh "wget https://storage.googleapis.com/flutter_infra/releases/${FLUTTER_CHANNEL}/linux/flutter_linux_${FLUTTER_VERSION}-${FLUTTER_CHANNEL}.tar.xz > /dev/null > /dev/null 2> /dev/null"
                 sh "tar xf flutter_linux_${FLUTTER_VERSION}-${FLUTTER_CHANNEL}.tar.xz"
-                sh ".${FLUTTER_PATH}/flutter --version"
-                sh "flutter --version"
+                sh "${FLUTTER} --version"
             }
         }
 
         stage('Configure Flutter') {
             steps {
                 echo "Configuring Flutter for Web..."
-                sh "flutter config --enable-web && flutter doctor"
+                sh "${FLUTTER} config --enable-web && flutter doctor"
             }
         }
 
@@ -48,64 +48,67 @@ pipeline {
             }
         }
 
-        stage('Checkout') {
-            steps {
-                echo "Checkout project..."
-                checkout scm
-                sh "ls -a"
-                sh "wget https://storage.googleapis.com/dart-archive/channels/${DART_CHANNEL}/release/${DART_VERSION}/sdk/dartsdk-linux-x64-release.zip"
-                sh "unzip dartsdk-linux-x64-release.zip"
-                sh "export PATH=`pwd`/dart-sdk/bin:$PATH"
-            }
-        }
-
         stage('Get dependencies') {
             steps {
                 echo "Fetching dependencies..."
-                sh "flutter pub get"
+                dir("${WORKING_DIR}") {
+                    sh "${FLUTTER} pub get"
+                }
             }
         }
 
         stage('Flutter analyze') {
             steps {
                 echo "Analyzing code..."
-                sh "flutter analyze"
+                dir("${WORKING_DIR}") {
+                    sh "${FLUTTER} analyze"
+                }
             }
         }
 
         stage('Flutter test') {
             steps {
                 echo "Running tests..."
-                sh "flutter test --coverage --coverage-path build/coverage.info"
+                dir("${WORKING_DIR}") {
+                    sh "${FLUTTER} test --coverage --coverage-path build/coverage.info"
+                }
             }
         }
 
         stage('Flutter driver test') {
             steps {
                 echo "Running driver tests..."
-                sh "dart test_driver/main.dart --no-verbose --store-logs-to=build/logs --email=$WEB_APP_USER_EMAIL --password=$WEB_APP_USER_PASSWORD"
+                dir("${WORKING_DIR}") {
+                    sh "${DART} test_driver/main.dart --no-verbose --store-logs-to=build/logs --email=$WEB_APP_USER_EMAIL --password=$WEB_APP_USER_PASSWORD"
+                }
             }
         }
 
         stage('Download coverage tool') {
             steps {
                 echo "Downloading coverage converter tool..."
-                sh "curl -o coverage -k https://github.com/platform-platform/monorepo/releases/download/coverage-converter-snapshot/coverage_converter_linux -L"
-                sh "chmod a+x coverage"
+                dir("${WORKING_DIR}") {
+                    sh "curl -o coverage -k https://github.com/platform-platform/monorepo/releases/download/coverage-converter-snapshot/coverage_converter_linux -L"
+                    sh "chmod a+x coverage"
+                }
             }
         }
 
         stage('Convert coverage report') {
             steps {
                 echo "Converting code coverage report..."
-                sh "./coverage lcov -i build/coverage.info -o coverage-summary.json"
+                dir("${WORKING_DIR}") {
+                    sh "./coverage lcov -i build/coverage.info -o coverage-summary.json"
+                }
             }
         }
 
         stage('Export coverage report') {
             steps {
                 echo "Uploading code coverage artifact..."
-                archiveArtifacts 'metrics/web/coverage-summary.json'
+                dir("${WORKING_DIR}") {
+                    archiveArtifacts 'metrics/web/coverage-summary.json'
+                }
             }
         }
     }
