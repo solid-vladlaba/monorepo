@@ -25,6 +25,9 @@ pipeline {
         stage('Configure Flutter') {
             steps {
                 echo "Configuring Flutter for Web..."
+                sh "which flutter"
+                sh "whoami"
+                sh "flutter doctor"
                 sh "flutter --version"
                 sh "flutter config --enable-web && flutter doctor"
             }
