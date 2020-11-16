@@ -23,11 +23,12 @@ pipeline {
         }
 
         stage('Configure Flutter') {
+            docker {
+                image "cirrusci/flutter:1.22.0-12.1.pre"
+                reuseNode true
+            }
             steps {
                 echo "Configuring Flutter for Web..."
-                sh "which flutter"
-                sh "whoami"
-                sh "flutter doctor"
                 sh "flutter --version"
                 sh "flutter config --enable-web && flutter doctor"
             }
