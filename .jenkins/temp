@@ -1,0 +1,128 @@
+pipeline {
+    agent any
+
+    environment {
+        FLUTTER_CHANNEL = 'beta'
+        FLUTTER_VERSION = '1.22.0-12.1.pre'
+        DART_CHANNEL = 'beta'
+        DART_VERSION = '2.10.0-110.5.beta'
+        CODECOV_CONVERTER_URL = 'https://github.com/platform-platform/monorepo/releases/download/coverage-converter-snapshot/coverage_converter_linux'
+        WORKING_DIR = 'metrics/web'
+        WEB_APP_USER_EMAIL = credentials('web-app-user-email')
+        WEB_APP_USER_PASSWORD = credentials('web-app-user-password')
+    }
+
+    stages {
+        stage('Starting') {
+            steps {
+                echo "Running Metrics Web build ${env.BUILD_ID} on ${env.JENKINS_URL}..."
+                echo "This build environment:"
+                sh "printenv"
+            }
+        }
+
+        stage('Install Flutter') {
+            steps {
+                echo "Installing Flutter from channel ${FLUTTER_CHANNEL} with version ${FLUTTER_VERSION}..."
+                sh "wget https://storage.googleapis.com/flutter_infra/releases/${FLUTTER_CHANNEL}/linux/flutter_linux_${FLUTTER_VERSION}-${FLUTTER_CHANNEL}.tar.xz > /dev/null > /dev/null 2> /dev/null"
+                sh "tar xf flutter_linux_${FLUTTER_VERSION}-${FLUTTER_CHANNEL}.tar.xz"
+                sh "./flutter/bin/flutter --version"
+            }
+        }
+
+        stage('Configure Flutter') {
+            steps {
+                echo "Configuring Flutter for Web..."
+                sh "./flutter/bin/flutter config --enable-web && ./flutter/bin/flutter doctor"
+            }
+        }
+
+        stage('Install Dart') {
+            steps {
+                echo "Installing Dart from channel ${DART_CHANNEL} with version ${DART_VERSION}..."
+                sh "wget https://storage.googleapis.com/dart-archive/channels/${DART_CHANNEL}/release/${DART_VERSION}/sdk/dartsdk-linux-x64-release.zip > /dev/null > /dev/null 2> /dev/null"
+                sh "unzip dartsdk-linux-x64-release.zip"
+            }
+        }
+
+        stage('Get dependencies') {
+            steps {
+                echo "Fetching dependencies..."
+                withEnv(["PATH+EXTRA=${WORKSPACE}/flutter/bin:${WORKSPACE}/dart/bin"]) {
+                    dir("${WORKING_DIR}") {
+                        sh "flutter pub get"
+                    }
+                }
+            }
+        }
+
+        stage('Flutter analyze') {
+            steps {
+                echo "Analyzing code..."
+                withEnv(["PATH+EXTRA=${WORKSPACE}/flutter/bin:${WORKSPACE}/dart/bin"]) {
+                    dir("${WORKING_DIR}") {
+                        sh "flutter analyze"
+                    }
+                }
+            }
+        }
+
+        stage('Flutter test') {
+            steps {
+                echo "Running tests..."
+                withEnv(["PATH+EXTRA=${WORKSPACE}/flutter/bin:${WORKSPACE}/dart/bin"]) {
+                    dir("${WORKING_DIR}") {
+                        sh "flutter test --coverage --coverage-path build/coverage.info"
+                    }
+                }
+            }
+        }
+
+        stage('Flutter driver test') {
+            steps {
+                echo "Running driver tests..."
+                withEnv(["PATH+EXTRA=${WORKSPACE}/flutter/bin:${WORKSPACE}/dart/bin"]) {
+                    dir("${WORKING_DIR}") {
+                        sh "dart test_driver/main.dart --no-verbose --store-logs-to=build/logs --email=$WEB_APP_USER_EMAIL --password=$WEB_APP_USER_PASSWORD"
+                    }
+                }
+            }
+        }
+
+        stage('Download coverage tool') {
+            steps {
+                echo "Downloading coverage converter tool..."
+                dir("${WORKING_DIR}") {
+                    sh "curl -o coverage -k https://github.com/platform-platform/monorepo/releases/download/coverage-converter-snapshot/coverage_converter_linux -L"
+                    sh "chmod a+x coverage"
+                }
+            }
+        }
+
+        stage('Convert coverage report') {
+            steps {
+                echo "Converting code coverage report..."
+                dir("${WORKING_DIR}") {
+                    sh "./coverage lcov -i build/coverage.info -o coverage-summary.json"
+                }
+            }
+        }
+
+        stage('Export coverage report') {
+            steps {
+                echo "Uploading code coverage artifact..."
+                archiveArtifacts 'metrics/web/coverage-summary.json'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "Cleaning up..."
+            sh "rm -rf flutter"
+            sh "rm flutter_linux_${FLUTTER_VERSION}-${FLUTTER_CHANNEL}.tar.xz"
+            sh "rm dartsdk-linux-x64-release.zip"
+            sh "rm -rf dart-sdk"
+        }
+    }
+}
