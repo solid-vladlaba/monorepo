@@ -2,6 +2,7 @@ pipeline {
     agent {
         docker {
             image "cirrusci/flutter:1.22.0-12.1.pre"
+            reuseNode true
         }
     }
 
