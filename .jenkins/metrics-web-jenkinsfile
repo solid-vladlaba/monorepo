@@ -23,12 +23,6 @@ pipeline {
         }
 
         stage('Configure Flutter') {
-            agent {
-                docker {
-                    image "cirrusci/flutter:1.22.0-12.1.pre"
-                    reuseNode true
-                }
-            }
             steps {
                 echo "Configuring Flutter for Web..."
                 sh "flutter --version"

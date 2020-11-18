@@ -1,0 +1,3 @@
+steps:
+  - label: "Example Test Another Hello"
+    command: echo "Another Hello!"
