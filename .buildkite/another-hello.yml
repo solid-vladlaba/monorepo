@@ -1,5 +1,5 @@
 env:
-  SYNC_CONFIG: "
+  SYNC_CONFIG: |
     source:
       buildkite:
         access_token: $$BUILDKITE_TOKEN
@@ -12,7 +12,6 @@ env:
         firebase_user_pass: $$WEB_APP_USER_PASSWORD
         firebase_public_api_key: AIzaSyCkM-7WEAb9GGCjKQNChi5MD2pqrcRanzo
         metrics_project_id: buildkite_ci_integrations
-  "
 
 steps:
   - label: "Example Test Another Hello"
