@@ -8,8 +8,8 @@ steps:
     command: echo "World!"
     depends_on: "first"
 
-  - trigger: sync-metrics-web-pipeline
-    label: "Trigger web sync"
+  - trigger: another-test-hello
+    label: "Trigger another hello with env"
     depends_on: "second"
     allow_dependency_failure: true
     async: true
