@@ -1,11 +1,18 @@
 steps:
-  - label: "Example Test"
-    command: echo "Hello!"
+  - label: "Failure step"
+    key: "first"
+    command: exit -1
 
-  - trigger: another-test-hello
-    label: "Trigger another hello"
+  - label: "Depended step"
+    key: "second"
+    command: echo "World!"
+    depends_on: "first"
+
+  - trigger: sync-metrics-web-pipeline
+    label: "Trigger web sync"
+    depends_on: "second"
+    allow_dependency_failure: true
     async: true
     build:
       env:
-        TEST_VARIABLE: "hello"
-        ANOTHER_TEST_VARIABLE: "world"
+        PIPELINE_SLUG: "metrics-web-pipeline"
