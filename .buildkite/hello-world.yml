@@ -1,3 +1,11 @@
 steps:
   - label: "Example Test"
     command: echo "Hello!"
+
+  - trigger: another-test-hello
+    label: "Trigger another hello"
+    async: true
+    build:
+      env:
+        TEST_VARIABLE: "hello"
+        ANOTHER_TEST_VARIABLE: "world"

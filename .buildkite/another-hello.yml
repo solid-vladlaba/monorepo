@@ -1,3 +1,9 @@
 steps:
   - label: "Example Test Another Hello"
     command: echo "Another Hello!"
+
+  - label: "Test env"
+    command: echo $TEST_VARIABLE
+
+  - label: "Test env 2"
+    command: echo $ANOTHER_TEST_VARIABLE
